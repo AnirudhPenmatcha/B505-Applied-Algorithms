@@ -1,0 +1,285 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[453]:
+
+
+# Question 1
+
+import random 
+
+class Node:
+    def __init__(self, val):
+        self.val = val
+        self.next_node = None
+        self.down_node = None
+
+class SkipList:
+    def __init__(self):
+        self.head_node = Node(float("-inf"))
+        self.tail_node = Node(float("inf"))
+        self.head_node.next_node = self.tail_node
+        self.size = 0
+
+    def search(self, target: int) -> bool:
+        current_node = self.head_node
+        while current_node:
+            while current_node.next_node and current_node.next_node.val < target:
+                current_node = current_node.next_node
+            if current_node.next_node and current_node.next_node.val == target:
+                return True
+            current_node = current_node.down_node
+        return False
+
+    def insert(self, num: int) -> None:
+        path = []  
+        current_node = self.head_node
+        while current_node:
+            while current_node.next_node and current_node.next_node.val < num:
+                current_node = current_node.next_node
+            path.append(current_node)  
+            current_node = current_node.down_node
+        prev_insert = None
+        insert_up = True
+        while path:
+            current_node = path.pop()
+            new_node = Node(num)
+            new_node.next_node = current_node.next_node
+            current_node.next_node = new_node
+            if insert_up and prev_insert:
+                new_node.down_node = prev_insert
+                prev_insert = None
+            if insert_up and random.random() < 0.5:  
+                insert_up = False
+                prev_insert = new_node
+        self.size += 1
+
+    
+
+
+# In[451]:
+
+
+# Question 2
+
+class amor_dict():
+    def __init__(self, num_list = []):
+        binary_values = list(map(int, (bin(len(num_list))[2:])))
+        binary_values.reverse()
+        index = 0
+        
+        self.levels = [[0]*(2**i) if (2**i) * binary_values[i] != 0 else [] for i in range(len(binary_values))]
+        
+        for i in range(len(self.levels)-1, -1, -1): # Going from back
+            if not self.levels[i]:
+                pass
+            else:
+                for j in range(len(self.levels[i])):
+                    self.levels[i][j] = num_list[index]
+                    index += 1
+                self.levels[i].sort()
+
+    def insert(self, num):
+        def merge(Arr, H):
+            sorted_H = []
+            size = len(Arr)
+            i = j = 0
+            while (i < size and j < size):
+                if Arr[i] < H[j]:
+                    sorted_H.append(Arr[i])
+                    i += 1
+                else:
+                    sorted_H.append(H[j])
+                    j += 1                      
+            while i < size: # This is to append the remaining elements from Arr
+                sorted_H.append(Arr[i])
+                i += 1
+            while j < size: # This is to append the remaining elements from H
+                sorted_H.append(H[j])
+                j += 1
+            return sorted_H
+                
+        H = [num]
+        i=0
+        while True:
+            if i == len(self.levels):
+                self.levels.append([])
+            if not self.levels[i]:
+                self.levels[i] = H
+                return
+            else:
+                H = merge(self.levels[i], H)
+                self.levels[i] = []
+                i = i+1
+                
+           
+    def search(self, num):
+        for i, level in enumerate(self.levels):
+            low = 0
+            high = len(level) - 1
+            while low <= high:
+                middle = (low + high) // 2
+                if level[middle] == num:
+                    return i  # Found the search value
+                elif level[middle] < num:
+                    low = middle + 1
+                else:
+                    high = middle - 1
+        return -1  # Search value not found
+            
+    
+    def print(self):
+        # Sample print function
+        result = list()
+        for level in self.levels: # iterate over all the levels
+            result.append(level[:]) # make a copy of each level to result
+        return result
+
+
+# In[460]:
+
+
+# Question 3
+
+class Deque:
+    def __init__(self, max_size: int):
+        self.maximum_size = max_size
+        self.queue = [None] * max_size
+        self.front_index = 0
+        self.rear_index = 0
+        self.current_size = 0
+
+    def isFull(self) -> bool:
+        return self.current_size == self.maximum_size
+
+    def isEmpty(self) -> bool:
+        return self.current_size == 0
+
+    def pushFront(self, value: int) -> bool:
+        if self.isFull():
+            return False
+        self.front_index = (self.front_index - 1) % self.maximum_size
+        self.queue[self.front_index] = value
+        self.current_size += 1
+        return True
+
+    def pushRear(self, value: int) -> bool:
+        if self.isFull():
+            return False
+        self.queue[self.rear_index] = value
+        self.rear_index = (self.rear_index + 1) % self.maximum_size
+        self.current_size += 1
+        return True
+
+    def popFront(self) -> int:
+        if self.isEmpty():
+            return -1
+        value = self.queue[self.front_index]
+        self.front_index = (self.front_index + 1) % self.maximum_size
+        self.current_size -= 1
+        return value
+
+    def popRear(self) -> int:
+        if self.isEmpty():
+            return -1
+        self.rear_index = (self.rear_index - 1) % self.maximum_size
+        value = self.queue[self.rear_index]
+        self.current_size -= 1
+        return value
+
+
+# In[329]:
+
+
+# Question 4
+
+def ironman_vs_thanos_again(s):
+    stack = []
+    count = 0
+    max_count = 0
+
+    for i, char in enumerate(s):
+        if char == "A":
+            stack.append(i)
+
+        elif char == "T":
+            if stack and s[stack[-1]] == "A":
+                stack.pop()
+
+                count += 1
+            else:
+                stack.append(i)
+                max_count = max(max_count, count)
+                count = 0
+    max_count = max(max_count,count)
+    print("finalcount", max_count*2)
+                
+
+
+# In[457]:
+
+
+# Question 5
+
+def saveMaximumPeople(cars: list[int]) -> int:
+    stack = []  
+    saved_count = 0  
+
+    for car in cars:
+        if car > 0:
+            stack.append(car)  
+        else:
+            while stack and stack[-1] > 0:
+                east_car = stack.pop()
+                if abs(car) < east_car:
+                    car = 0  
+                    stack.append(east_car)  
+                    break
+                elif abs(car) == east_car:
+                    car = 0  
+                    break
+            if car != 0 and (not stack or stack[-1] < 0):
+                stack.append(car)  
+
+    saved_count = sum([abs(car) for car in stack])
+
+    return saved_count
+
+
+# In[459]:
+
+
+# Question 6
+
+def impatientBob(Prices: list[int]) -> list[int]:
+    stack = []
+    output = [0] * len(Prices)
+
+    for i in range(len(Prices) - 1, -1, -1):
+        while stack and Prices[i] >= Prices[stack[-1]]:
+            stack.pop()
+        if stack:
+            output[i] = stack[-1] - i
+        stack.append(i)
+
+    return output
+
+
+# In[455]:
+
+
+# Question 7
+
+def scoreOfMagicalString(s: str) -> int:
+    stack = []
+    total_score = 0
+    
+    for char in s:
+        if char == '(':
+            stack.append(total_score)
+            total_score = 0
+        else:
+            total_score = stack.pop() + max(1, total_score * 2)
+    
+    return total_score
+
